@@ -1,4 +1,5 @@
 const express = require('express');
+var morgan = require('morgan');
 const app = express();
 
 let persons = [
@@ -24,13 +25,19 @@ let persons = [
   }
 ];
 
-app.use(express.json())
+morgan.token('post', function (req) { 
+  return req.method === 'POST' && JSON.stringify(req.body);
+})
 
-app.get('/api/persons', (req, res) => {
+app.use(express.json());
+// app.use(morgan('tiny'));
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :post'))
+
+app.get('/api/persons', (_, res) => {
   res.json(persons)
 });
 
-app.get('/info', (req, res) => {
+app.get('/info', (_, res) => {
   const time = new Date().toString();
   res.send(`
     <p>Phonebook has info of ${persons.length} people</p>
@@ -64,7 +71,6 @@ app.post('/api/persons', (req, res) => {
     })
   }
   const nameExists = persons.find((person) => person.name === name);
-  console.log(nameExists);
 
   if(!nameExists) {
     const person = {
@@ -80,8 +86,6 @@ app.post('/api/persons', (req, res) => {
       error: 'name must be unique' 
     })
   }
-  
-  
 });
 
 const PORT = 3001
